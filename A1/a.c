@@ -23,6 +23,7 @@ int textures = 0;
 float rotateAngle =0;
 int maxDepth = -1;
 char* strDraw;
+GLfloat zFactor = 0;
 
 GLubyte  Image[64][64][4];
 GLuint   textureID[1];
@@ -39,8 +40,8 @@ void createImage( int currentDepth){
    for(i=0; i < len;i++){
        if(strDraw[i] == 'F'){
          //moves to new location and draws sphere then recursively calls function
-         glTranslatef (0.0, 0.2, 0.0);
-         glutSolidSphere (0.1, 20, 20);
+         glTranslatef (0.0, 0.5, 0.0);
+         glutSolidSphere (0.3, 10, 10);
          createImage(currentDepth);
 
       } else if(strDraw[i] == '['){
@@ -94,7 +95,9 @@ void display (void)
    GLfloat white[] = {1.0, 1.0, 1.0, 1.0};
 
    glMatrixMode (GL_MODELVIEW);
-   glScalef(0.01, 0.01, 0.01);
+   
+   //glScalef(zFactor,zFactor,zFactor);
+  // glScalef(0.015,0.015,0.015);
 
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -105,8 +108,9 @@ void display (void)
 
 	/* set starting location of objects */
    glPushMatrix ();
-   glTranslatef(0.0, -9.0, -10.0);
-  
+   glTranslatef(0.0, -20, (-300.0 + zFactor));
+   //glutSolidSphere (1, 15, 15);
+
 	/* give all objects the same shininess value */
    glMaterialf(GL_FRONT, GL_SHININESS, 30.0);
 
@@ -115,7 +119,8 @@ void display (void)
    glMaterialfv(GL_FRONT, GL_SPECULAR, green);
 
    createImage(0);
-
+   
+   glPopMatrix ();
    glFlush ();
 
 
@@ -126,10 +131,33 @@ void reshape(int w, int h)
    glViewport (0, 0, (GLsizei) w, (GLsizei) h);
    glMatrixMode (GL_PROJECTION);
    glLoadIdentity();
-   gluPerspective(90.0, (GLfloat)w/(GLfloat)h, 1.0, 1.0);
+   gluPerspective(45.0, (GLfloat)w/(GLfloat)h, 0.1, 1000.0);
    glMatrixMode (GL_MODELVIEW);
    glLoadIdentity ();
 }
+
+void mouse(int button, int state, int x, int y)
+{
+   // Wheel reports as button 3(scroll up) and button 4(scroll down)
+   switch(button){
+      case 3:
+          printf("Scroll %s At %d %d zfac = %f\n", (button == 3) ? "Up" : "Down", x, y, zFactor);
+         zFactor += 5.00;
+         init();
+         display();
+         break;
+      case 4:
+         printf("btn %s At %d %d zfac = %f\n", (state == GLUT_DOWN) ? "Down" : "Up", x, y, zFactor);
+         zFactor -= 5.00;
+         init();
+         display();
+         break;
+   }
+
+  
+ }
+
+
 
 int main(int argc, char** argv){
    char* filename;
@@ -162,6 +190,7 @@ int main(int argc, char** argv){
    //assign global variables
    rotateAngle = angle;
    maxDepth = depth;
+   zFactor = 0.015;
 
    //allocate memory for string 
    strDraw = malloc ( (strlen(buffer[2])+1) * sizeof(char));
@@ -176,6 +205,7 @@ int main(int argc, char** argv){
   
    glutReshapeFunc (reshape);
    glutDisplayFunc(display);
+   glutMouseFunc(mouse);
    glutMainLoop();
 
    //printf("\n");
