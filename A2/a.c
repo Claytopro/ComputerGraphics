@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
+#include <ctype.h>
 // Linux OpenGL Headers
 
 #include <GL/gl.h>
@@ -21,7 +21,7 @@
 */
 
 const float PI = 3.14;
-const float vRange = (3.14 / 2) ;
+const float vRange = 3.14;
 const float uRange = 6.28;
 const int radius = 1;
 
@@ -32,6 +32,8 @@ int drawNormals = 0;	// draw normals on object
 int heightmap = 0;	// use heightmap to move vertices when == 1
 int drawDots = 0;	// draw only vertices when == 1
 int smoothShade = 1;	// use normal vertices when ==1,surface normals when ==0 
+
+int pixelMap[50*50]; // holds heightmap information
 
 	/* used to rotate object in update() */
 float rot = 0.0;
@@ -84,6 +86,7 @@ void init (void) {
 
 void display (void)
 {
+   int i,j,p;
    float segments,u,v;
    GLfloat x1,x2,x3,x4;
    GLfloat y1,y2,y3,y4;
@@ -91,13 +94,13 @@ void display (void)
 
    float uStepsize, vStepsize;
 
-GLfloat blue[]  = {0.0, 0.0, 1.0, 1.0};
-GLfloat red[]   = {1.0, 0.0, 0.0, 1.0};
-GLfloat darkred[]   = {0.3, 0.0, 0.0, 1.0};
-GLfloat green[] = {0.0, 1.0, 0.0, 1.0};
-GLfloat white[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat gray[] = {0.8, 0.8, 0.8, 1.0};
-GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
+   GLfloat blue[]  = {0.0, 0.0, 1.0, 1.0};
+   GLfloat red[]   = {1.0, 0.0, 0.0, 1.0};
+   GLfloat darkred[]   = {0.3, 0.0, 0.0, 1.0};
+   GLfloat green[] = {0.0, 1.0, 0.0, 1.0};
+   GLfloat white[] = {1.0, 1.0, 1.0, 1.0};
+   GLfloat gray[] = {0.8, 0.8, 0.8, 1.0};
+   GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
 
 
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -132,19 +135,19 @@ GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
 	/* set point size so vertices are visible */
    glPointSize(5.0);
 
-   segments = 10;
+   segments = 50;
 
    uStepsize = uRange / segments;
-   vStepsize = vRange /segments;
+   vStepsize = vRange / segments;
 
-	/* Your code goes here */
-  // glutSolidCone (1.0, 2.0, 15, 15);
+   i = 0;
 
-   
    if(drawDots == 1){
-    
-       for(u=0; u<uRange; u += uStepsize ){
-         for(v= -PI/2; v<PI/2; v += vStepsize){
+  
+       for(j=0; u<segments ; j++ ){
+         u = j * uStepsize;
+         for(v= -PI/2; v<PI/2 ; v += vStepsize){
+            
             glBegin(GL_POINTS);  //starts drawing with points
             x1 = radius * cos((double)v) * cos((double)u);
             y1 = radius * cos((double)v) * sin((double)u);
@@ -162,6 +165,29 @@ GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
             y4 = radius * cos((double)v + vStepsize) * sin((double)u);
             z4 = radius * sin((double)v + vStepsize);
 
+            if(heightmap == 1){
+
+               x1 *= 1.0 + pixelMap[i] / 512.0;
+               y1 *= 1.0 + pixelMap[i] / 512.0;
+               z1 *= 1.0 + pixelMap[i] / 512.0;
+
+
+               x2 *= 1.0 + pixelMap[i] / 512.0;
+               y2 *= 1.0 + pixelMap[i] / 512.0;
+               z2 *= 1.0 + pixelMap[i] / 512.0;
+
+               x3 *= 1.0 + pixelMap[i] / 512.0;
+               y3 *= 1.0 + pixelMap[i] / 512.0;
+               z3 *= 1.0 + pixelMap[i] / 512.0;
+
+               x4 *= 1.0 + pixelMap[i] / 512.0;
+               y4 *= 1.0 + pixelMap[i] / 512.0;
+               z4 *= 1.0 + pixelMap[i] / 512.0;
+
+
+            //   printf("pix = %d ;i = %d\n",pixelMap[i],i);
+               i++;
+            }
             
             glVertex3f(x1,y1,z1);
             glVertex3f(x2,y2,z2);
@@ -169,16 +195,37 @@ GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
             glVertex3f(x4,y4,z4);   
 
             glEnd();//end drawing of points
+
+            if(drawNormals == 1){
+               glBegin(GL_LINES);
+               glVertex3f(x1,y1,z1);
+               glVertex3f(x1 *1.1,y1 *1.1,z1 *1.1);
+               glEnd();
+
+               glBegin(GL_LINES);
+               glVertex3f(x2,y2,z2);
+               glVertex3f(x2 *1.1,y2 *1.1,z2 *1.1);
+               glEnd();
+
+               glBegin(GL_LINES);
+               glVertex3f(x3,y3,z3);
+               glVertex3f(x3 *1.1,y3 *1.1,z3 *1.1);
+               glEnd();
+
+               glBegin(GL_LINES);
+               glVertex3f(x4,y4,z4);
+               glVertex3f(x4 * 1.1,y4 *1.1,z4 *1.1);
+               glEnd();
+            }
          }
       }
 
-     
    }else if( drawDots == 0) {
-      for(u=0; u<uRange; u += uStepsize ){
+      
+      for(j=0; j<segments;j++ ){
+         u = j * uStepsize;
          for(v= -PI/2; v<PI/2; v += vStepsize){
             glBegin(GL_QUADS);  //starts drawing with points
-
-            
 
             x1 = radius * cos((double)v) * cos((double)u);
             y1 = radius * cos((double)v) * sin((double)u);
@@ -195,6 +242,31 @@ GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
             x4 = radius * cos((double)v + vStepsize) * cos((double)u);
             y4 = radius * cos((double)v + vStepsize) * sin((double)u);
             z4 = radius * sin((double)v + vStepsize);
+
+            if(heightmap == 1){
+
+               x1 *= 1.0 + pixelMap[i] / 512.0;
+               y1 *= 1.0 + pixelMap[i] / 512.0;
+               z1 *= 1.0 + pixelMap[i] / 512.0;
+
+
+               x2 *= 1.0 + pixelMap[i] / 512.0;
+               y2 *= 1.0 + pixelMap[i] / 512.0;
+               z2 *= 1.0 + pixelMap[i] / 512.0;
+
+               x3 *= 1.0 + pixelMap[i] / 512.0;
+               y3 *= 1.0 + pixelMap[i] / 512.0;
+               z3 *= 1.0 + pixelMap[i] / 512.0;
+
+
+               x4 *= 1.0 + pixelMap[i] / 512.0;
+               y4 *= 1.0 + pixelMap[i] / 512.0;
+               z4 *= 1.0 + pixelMap[i] / 512.0;
+
+
+               printf("pix = %d ;i = %d\n",pixelMap[i],i);
+               i++;
+            }
 
             if(smoothShade == 1){ //smooth shade it
                glNormal3f(2*x1,2*y1,2*z1);
@@ -217,22 +289,22 @@ GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
             if(drawNormals == 1){
                glBegin(GL_LINES);
                glVertex3f(x1,y1,z1);
-               glVertex3f(x1 + 0.1,y1+ 0.1,z1 + 0.1);
+               glVertex3f(x1 *1.1,y1 *1.1,z1 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
                glVertex3f(x2,y2,z2);
-               glVertex3f(x2 + 0.1,y2 + 0.1,z2 + 0.1);
+               glVertex3f(x2 *1.1,y2 *1.1,z2 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
                glVertex3f(x3,y3,z3);
-               glVertex3f(x3 + 0.1,y3 + 0.1,z3 + 0.1);
+               glVertex3f(x3 *1.1,y3 *1.1,z3 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
                glVertex3f(x4,y4,z4);
-               glVertex3f(x4 + 0.1,y4 + 0.1,z4 + 0.1);
+               glVertex3f(x4 * 1.1,y4 *1.1,z4 *1.1);
                glEnd();
 
             }
@@ -314,6 +386,31 @@ void update() {
  *  RGBA display mode, and handle input events.
  */
 int main(int argc, char** argv) {
+   char* filename;
+   FILE *fp;
+   int i,temp;
+   char buffer[256];
+   filename = argv[1];
+
+   if((fp=fopen(filename,"r")) == NULL){
+      printf("Error! opening file\n");
+      exit(1);
+   }
+
+  
+
+   //skip first 3 lines 
+   for(i=0;i<3;i++){
+      fgets(buffer, 256, fp);
+   }
+   
+   i=0;
+   while (fscanf(fp, "%d", &temp) && !feof(fp)) {
+    
+      pixelMap[i] = temp;
+      i++;
+   }
+   
 
    glutInit(&argc, argv);
    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
@@ -325,6 +422,8 @@ int main(int argc, char** argv) {
    glutKeyboardFunc (keyboard);
    glutIdleFunc(update);
    glutMainLoop();
+
+   fclose(fp);
    return 0; 
 }
 
