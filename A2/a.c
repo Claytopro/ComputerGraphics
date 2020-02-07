@@ -33,14 +33,14 @@ int heightmap = 0;	// use heightmap to move vertices when == 1
 int drawDots = 0;	// draw only vertices when == 1
 int smoothShade = 1;	// use normal vertices when ==1,surface normals when ==0 
 
-int pixelMap[50*50]; // holds heightmap information
+int pixelMap[2504]; // holds heightmap information
 
 	/* used to rotate object in update() */
 float rot = 0.0;
 
 	/* used for height map */
 int iheight, iwidth, idepth;
-int image[100][100];
+int image[100][104];
 
 /*  Initialize material property and light source.  */
 void init (void) {
@@ -81,6 +81,8 @@ void init (void) {
    glEnable (GL_LIGHT0);
    glEnable (GL_LIGHT1);
    glEnable(GL_DEPTH_TEST);
+
+   //glEnable(GL_COLOR_MATERIAL);
 }
 
 
@@ -141,14 +143,15 @@ void display (void)
    vStepsize = vRange / segments;
 
    i = 0;
+   
 
    if(drawDots == 1){
   
-       for(j=0; u<segments ; j++ ){
+       for(j=0; j<segments;j++ ){
          u = j * uStepsize;
-         for(v= -PI/2; v<PI/2 ; v += vStepsize){
+         for(v= -PI/2; v<PI/2; v += vStepsize){
             
-            glBegin(GL_POINTS);  //starts drawing with points
+           
             x1 = radius * cos((double)v) * cos((double)u);
             y1 = radius * cos((double)v) * sin((double)u);
             z1 = radius * sin((double)v);
@@ -171,52 +174,98 @@ void display (void)
                y1 *= 1.0 + pixelMap[i] / 512.0;
                z1 *= 1.0 + pixelMap[i] / 512.0;
 
+               if(i>2449){
+                  x2 *= 1.0 + pixelMap[2499-i] / 512.0;
+                  y2 *= 1.0 + pixelMap[2499-i] / 512.0;
+                  z2 *= 1.0 + pixelMap[2499-i] / 512.0;
 
-               x2 *= 1.0 + pixelMap[i] / 512.0;
-               y2 *= 1.0 + pixelMap[i] / 512.0;
-               z2 *= 1.0 + pixelMap[i] / 512.0;
-
-               x3 *= 1.0 + pixelMap[i] / 512.0;
-               y3 *= 1.0 + pixelMap[i] / 512.0;
-               z3 *= 1.0 + pixelMap[i] / 512.0;
-
-               x4 *= 1.0 + pixelMap[i] / 512.0;
-               y4 *= 1.0 + pixelMap[i] / 512.0;
-               z4 *= 1.0 + pixelMap[i] / 512.0;
+                  x3 *= 1.0 + pixelMap[2498-i] / 512.0;
+                  y3 *= 1.0 + pixelMap[2498-i] / 512.0;
+                  z3 *= 1.0 + pixelMap[2498-i] / 512.0;
 
 
-            //   printf("pix = %d ;i = %d\n",pixelMap[i],i);
+               }else{
+                  x2 *= 1.0 + pixelMap[i+50] / 512.0;
+                  y2 *= 1.0 + pixelMap[i+50] / 512.0;
+                  z2 *= 1.0 + pixelMap[i+50] / 512.0;
+
+                  x3 *= 1.0 + pixelMap[i+51] / 512.0;
+                  y3 *= 1.0 + pixelMap[i+51] / 512.0;
+                  z3 *= 1.0 + pixelMap[i+51] / 512.0;
+
+               }
+
+               if(i==2499){
+                  x4 *= 1.0 + pixelMap[1] / 512.0;
+                  y4 *= 1.0 + pixelMap[1] / 512.0;
+                  z4 *= 1.0 + pixelMap[1] / 512.0;
+               }else{
+                  x4 *= 1.0 + pixelMap[i+1] / 512.0;
+                  y4 *= 1.0 + pixelMap[i+1] / 512.0;
+                  z4 *= 1.0 + pixelMap[i+1] / 512.0;
+               }
+         
+
+
+               //printf("pix = %d ;i = %d\n",pixelMap[i],i);
                i++;
             }
-            
-            glVertex3f(x1,y1,z1);
-            glVertex3f(x2,y2,z2);
-            glVertex3f(x3,y3,z3);
-            glVertex3f(x4,y4,z4);   
 
+            glBegin(GL_POINTS);  //starts drawing with points
+            glVertex3f(x1,y1,z1);
             glEnd();//end drawing of points
 
+            glBegin(GL_POINTS);  //starts drawing with points
+            glVertex3f(x2,y2,z2);
+            glEnd();//end drawing of points
+
+            glBegin(GL_POINTS);  //starts drawing with points
+            glVertex3f(x3,y3,z3);
+            glEnd();//end drawing of points
+
+            glBegin(GL_POINTS);  //starts drawing with points
+            glVertex3f(x4,y4,z4);   
+            glEnd();//end drawing of points
+
+            
             if(drawNormals == 1){
+               glMaterialfv(GL_FRONT, GL_AMBIENT, green);
+               glMaterialfv(GL_FRONT, GL_DIFFUSE, green);
+               glMaterialfv(GL_FRONT, GL_SPECULAR, green);
                glBegin(GL_LINES);
+               
                glVertex3f(x1,y1,z1);
+               
                glVertex3f(x1 *1.1,y1 *1.1,z1 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+              
                glVertex3f(x2,y2,z2);
+                
                glVertex3f(x2 *1.1,y2 *1.1,z2 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+               
                glVertex3f(x3,y3,z3);
+              
                glVertex3f(x3 *1.1,y3 *1.1,z3 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+              
                glVertex3f(x4,y4,z4);
+               
                glVertex3f(x4 * 1.1,y4 *1.1,z4 *1.1);
                glEnd();
+               glMaterialfv(GL_FRONT, GL_AMBIENT, darkgray);
+               glMaterialfv(GL_FRONT, GL_DIFFUSE, gray);
+               glMaterialfv(GL_FRONT, GL_SPECULAR, white);
             }
+            
+          
+   
          }
       }
 
@@ -224,7 +273,9 @@ void display (void)
       
       for(j=0; j<segments;j++ ){
          u = j * uStepsize;
+         
          for(v= -PI/2; v<PI/2; v += vStepsize){
+          //  printf("u = %f, v = %f , i = %d\n",u,v,i);
             glBegin(GL_QUADS);  //starts drawing with points
 
             x1 = radius * cos((double)v) * cos((double)u);
@@ -249,36 +300,54 @@ void display (void)
                y1 *= 1.0 + pixelMap[i] / 512.0;
                z1 *= 1.0 + pixelMap[i] / 512.0;
 
+               if(i>2449){
+                  x2 *= 1.0 + pixelMap[2499-i] / 512.0;
+                  y2 *= 1.0 + pixelMap[2499-i] / 512.0;
+                  z2 *= 1.0 + pixelMap[2499-i] / 512.0;
 
-               x2 *= 1.0 + pixelMap[i] / 512.0;
-               y2 *= 1.0 + pixelMap[i] / 512.0;
-               z2 *= 1.0 + pixelMap[i] / 512.0;
-
-               x3 *= 1.0 + pixelMap[i] / 512.0;
-               y3 *= 1.0 + pixelMap[i] / 512.0;
-               z3 *= 1.0 + pixelMap[i] / 512.0;
-
-
-               x4 *= 1.0 + pixelMap[i] / 512.0;
-               y4 *= 1.0 + pixelMap[i] / 512.0;
-               z4 *= 1.0 + pixelMap[i] / 512.0;
+                  x3 *= 1.0 + pixelMap[2498-i] / 512.0;
+                  y3 *= 1.0 + pixelMap[2498-i] / 512.0;
+                  z3 *= 1.0 + pixelMap[2498-i] / 512.0;
 
 
-               printf("pix = %d ;i = %d\n",pixelMap[i],i);
+               }else{
+                  x2 *= 1.0 + pixelMap[i+50] / 512.0;
+                  y2 *= 1.0 + pixelMap[i+50] / 512.0;
+                  z2 *= 1.0 + pixelMap[i+50] / 512.0;
+
+                  x3 *= 1.0 + pixelMap[i+51] / 512.0;
+                  y3 *= 1.0 + pixelMap[i+51] / 512.0;
+                  z3 *= 1.0 + pixelMap[i+51] / 512.0;
+
+               }
+
+               if(i==2499){
+                  x4 *= 1.0 + pixelMap[1] / 512.0;
+                  y4 *= 1.0 + pixelMap[1] / 512.0;
+                  z4 *= 1.0 + pixelMap[1] / 512.0;
+               }else{
+                  x4 *= 1.0 + pixelMap[i+1] / 512.0;
+                  y4 *= 1.0 + pixelMap[i+1] / 512.0;
+                  z4 *= 1.0 + pixelMap[i+1] / 512.0;
+               }
+         
+
+
+               //printf("pix = %d ;i = %d\n",pixelMap[i],i);
                i++;
             }
 
             if(smoothShade == 1){ //smooth shade it
-               glNormal3f(2*x1,2*y1,2*z1);
+               glNormal3f(x1,y1,z1);
                glVertex3f(x1,y1,z1);
-               glNormal3f(2*x2,2*y2,2*z2);
+               glNormal3f(x2,y2,z2);
                glVertex3f(x2,y2,z2);
-               glNormal3f(2*x3,2*y3,2*z3);
+               glNormal3f(x3,y3,z3);
                glVertex3f(x3,y3,z3);
-               glNormal3f(2*x4,2*y4,2*z4);
+               glNormal3f(x4,y4,z4);
                glVertex3f(x4,y4,z4);   
             }else{ //flat shad it
-               glNormal3f(2*x1,2*y1,2*z1);
+               glNormal3f(x1,y1,z1);
                glVertex3f(x1,y1,z1);
                glVertex3f(x2,y2,z2);
                glVertex3f(x3,y3,z3);
@@ -287,25 +356,39 @@ void display (void)
             glEnd();//end drawing of points
 
             if(drawNormals == 1){
+               glMaterialfv(GL_FRONT, GL_AMBIENT, green);
+               glMaterialfv(GL_FRONT, GL_DIFFUSE, green);
+               glMaterialfv(GL_FRONT, GL_SPECULAR, green);
                glBegin(GL_LINES);
+              
                glVertex3f(x1,y1,z1);
+               
                glVertex3f(x1 *1.1,y1 *1.1,z1 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+               
                glVertex3f(x2,y2,z2);
+               
                glVertex3f(x2 *1.1,y2 *1.1,z2 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+                
                glVertex3f(x3,y3,z3);
+               
                glVertex3f(x3 *1.1,y3 *1.1,z3 *1.1);
                glEnd();
 
                glBegin(GL_LINES);
+              
                glVertex3f(x4,y4,z4);
+               
                glVertex3f(x4 * 1.1,y4 *1.1,z4 *1.1);
                glEnd();
+               glMaterialfv(GL_FRONT, GL_AMBIENT, darkgray);
+               glMaterialfv(GL_FRONT, GL_DIFFUSE, gray);
+               glMaterialfv(GL_FRONT, GL_SPECULAR, white);
 
             }
              
@@ -315,7 +398,7 @@ void display (void)
       }
    }
       
-
+   
    glPopMatrix ();
    glFlush ();
 }
@@ -363,20 +446,26 @@ void keyboard(unsigned char key, int x, int y) {
       case '5':		// flat shade, use only one normal
          if (smoothShade == 0) smoothShade = 1;
          else smoothShade = 0;
+         init();
+         display();
          break;
       case '6':		// draw normals to points when ==1
          if (drawNormals == 0) drawNormals = 1;
-	 else drawNormals = 0;
+	      else drawNormals = 0;
+         init();
+         display();
          break;
       case '7':		// add height map to sphere when ==1
          if (heightmap == 0) heightmap = 1;
          else heightmap = 0;
+         init();
+         display();
          break;
    }
 }
 
 void update() {
-  rot += 1.0;
+  rot += 0.1;
    display();
 }
 
@@ -420,6 +509,7 @@ int main(int argc, char** argv) {
    glutReshapeFunc (reshape);
    glutDisplayFunc(display);
    glutKeyboardFunc (keyboard);
+   rot += 130.0;
    glutIdleFunc(update);
    glutMainLoop();
 
