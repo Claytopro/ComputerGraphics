@@ -44,6 +44,7 @@ float length(float *x, float *y, float *z) {
 void normalize(float *xd, float *yd, float *zd) {
 float len;
    len = length(xd, yd, zd);
+   
    *xd = *xd / len;
    *yd = *yd / len;
    *zd = *zd / len;
@@ -139,8 +140,8 @@ float xd, yd, zd;   // view ray direction
             	/* if there are two two intersection points (discriminant > 0) 
 		         then determine which point is closer to the viewpoint (x0, y0, z0)
 		         and calculate the intersection of point (xi, yi, zi) */
-            tOne = ((-1)*B - sqrt(dis) ) / 2*A;
-            tTwo = ((-1)*B + sqrt(dis) ) / 2*A;
+            tOne = (((-1)*B) - sqrt(dis) ) / 2*A;
+            tTwo = (((-1)*B) + sqrt(dis) ) / 2*A;
 
             ri0[0] = (x0 + (xd*tOne)); 
             ri0[1] = (y0 + (yd*tOne));
@@ -165,7 +166,9 @@ float xd, yd, zd;   // view ray direction
          normalVector[0] = (ri0[0] - sx)/sphereRadius;
          normalVector[1] = (ri0[1] - sy)/sphereRadius;
          normalVector[2] = (ri0[2] - sz)/sphereRadius;
+        
          normalize(&normalVector[0],&normalVector[1],&normalVector[2]);
+        
 		/* calculate viewing vector (vx, vy, vz) */
          viewVector[0] = x0-ri0[0];
          viewVector[1] = y0-ri0[1];
@@ -175,8 +178,7 @@ float xd, yd, zd;   // view ray direction
          lightVector[0] = lightX - ri0[0];
          lightVector[1] = lightY - ri0[1];
          lightVector[2] = lightZ - ri0[2];
-         normalize(&lightVector[0],&lightVector[1],&lightVector[2]);
-
+         normalize(&lightVector[0],&lightVector[1],&lightVector[2]);         
 		/* calculate the dot product N.L, using the normal vector
 		   and the light vector */
          dotproduct = (normalVector[0] *lightVector[0]) + (normalVector[1] *lightVector[1]) + (normalVector[2] *lightVector[2]);
@@ -185,6 +187,7 @@ float xd, yd, zd;   // view ray direction
          reflectionVector[0] = 2 * dotproduct * normalVector[0]- lightVector[0];
          reflectionVector[1] = 2 * dotproduct * normalVector[1] - lightVector[1];
          reflectionVector[2] = 2 * dotproduct * normalVector[2] - lightVector[2];
+         //if(length(&reflectionVector[0],&reflectionVector[2],&reflectionVector[2]) <0)printf("rv < 0\n");
          normalize(&reflectionVector[0],&reflectionVector[1],&reflectionVector[2]);
 		/* calculate the dot product R.V, using the reflection vector
 		   and the viewing vector */
@@ -198,7 +201,10 @@ float xd, yd, zd;   // view ray direction
 		   and the dot products N.L and R.V  */
          
 			/* end of ray tracing code */
-
+         
+         reflectionDotproduct = fmax(0,reflectionDotproduct);
+         reflectionDotproduct = pow(reflectionDotproduct,50);
+         
 		/* replace the following three lines with the illumination calculations */
          r = ar + dr*dotproduct + sr*reflectionDotproduct;  
          g = ag + dg*dotproduct + sg*reflectionDotproduct;
@@ -237,27 +243,6 @@ int main(int argc, char** argv) {
    filename = argv[1];
 	/* read input file */
 
-   lightX = 4.0;
-   lightY = 5.0;
-   lightZ = 4.0;
-
-   sx = 0.0;
-   sy = -0.5;
-   sz = -3.0;
-   sphereRadius = 1.0;
-
-   ar = 0.2;
-   ag = 0.2;
-   ab = 0.2;   
-
-   dr = 0.0;
-   dg = 0.5;
-   db = 0.0;  
-
-   sr = 0.4;
-   sg = 0.4;
-   sb = 0.4;
-
 
    if((fp=fopen(filename,"r")) == NULL){
       printf("Error! opening file\n");
@@ -272,26 +257,26 @@ int main(int argc, char** argv) {
       }
    }
 
-   // lightX = input[0];
-   // lightY = input[1];
-   // lightZ = input[2];
+   lightX = input[0];
+   lightY = input[1];
+   lightZ = input[2];
 
-   // sx = input[3];
-   // sy = input[4];
-   // sz = input[5];
-   // sphereRadius = input[6];
+   sx = input[3];
+   sy = input[4];
+   sz = input[5];
+   sphereRadius = input[6];
 
-   // ar = input[7];
-   // ag = input[8];
-   // ab = input[9];   
+   ar = input[7];
+   ag = input[8];
+   ab = input[9];   
 
-   // dr = input[10];
-   // dg = input[11];
-   // db = input[12];  
+   dr = input[10];
+   dg = input[11];
+   db = input[12];  
 
-   // sr = input[13];
-   // sg = input[14];
-   // sb = input[15];  
+   sr = input[13];
+   sg = input[14];
+   sb = input[15];  
 
    
    
