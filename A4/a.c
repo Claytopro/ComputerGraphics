@@ -29,9 +29,9 @@ GLfloat light_position[4];
 
 /*  Initialize material property and light source.  */
 void init (void) {
-   light_position[0] =  10.0;
+   light_position[0] =  0.0;
    light_position[1] =  10.0;
-   light_position[2] =  10.0;
+   light_position[2] =  15.0;
    light_position[3] =  0.0;
  
 }
@@ -57,49 +57,182 @@ void init (void) {
     
         /* OoenGL calls this to draw the screen */
     void display() {
-    int i;
-    int v1,v2,v3,v4,v5;
-
-
-    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-	/* set starting location of objects */
-    glPushMatrix ();
-    glTranslatef(0.0, -3.0, -40.0);
-	/* rotate around the y axis, angle or rotation (rot) modified in
-	   the update() function */
-    glRotatef (rotate, 0.0, 1.0, 0.0);
-
-    glPointSize(5.0);
-    for(i=0;i<numberOfFaces;i++){
+        int i,j;
+        int v1,v2,v3,v4,v5;
+        GLfloat shadowMatrix[4][4];
+        GLfloat shadmat[16];
+        GLfloat groundplane[4];
+        GLfloat green[] = {0.0, 1.0, 0.0, 1.0};
+        GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
         
-        v1 = faceMap[i][0];
-        v2 = faceMap[i][1];
-        v3 = faceMap[i][2];
-        v4 = faceMap[i][3];
-     //   printf("i at %d, %d,%d,%d,%d",i,v1,v2,v3,v4);
-     //   printf(", xyz = %f, %f, %f\n",vertexMap[v1][0],vertexMap[v1][1],vertexMap[v1][2]);
-        if(v1 == 3){
-            glBegin(GL_TRIANGLES); 
-            glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
-            glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
-            glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
-        }else{
-            glBegin(GL_QUADS); 
-            v5 = faceMap[i][4];
-            glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
-            glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
-            glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
-            glVertex3f(vertexMap[v5][0],vertexMap[v5][1],vertexMap[v5][2]);
-        }
+        //draw light as sphere 
+        glMatrixMode(GL_MODELVIEW);
+        
+        glPushMatrix();
+        glClear(GL_COLOR_BUFFER_BIT);
+        // clear the identity matrix.
+        glLoadIdentity();
+    
+        glTranslatef(light_position[0],light_position[1],light_position[2]);
+        glutSolidSphere (1, 20, 20);
+    
+        glPopMatrix();
 
+        // z plane
+        // GLfloat floorVertices[4][3] = {
+        //     { -20.0, 20.0, 00.0 },
+        //     { 20.0, 20.0, 0.0 },
+        //     { 20.0, -20.0, 0.0 },
+        //     { -20.0, -20.0, 0.0 },
+        //     };
+
+        //x plane
+
+        GLfloat floorVertices[4][3] = {
+            { -20.0, 0.0, 20.0 },
+            { 20.0, 0.0, 20.0 },
+            { 20.0, 0.0, -20.0 },
+            { -20.0, 0.0, -20.0 },
+            };
+
+
+        
+        glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        /* set starting location of objects */
+        glPushMatrix ();
+        glTranslatef(0.0,0.0, -40.0);
+        glRotatef(40,1,0,0); // rotate so looking down on cube
+
+        /* rotate around the y axis, angle or rotation (rot) modified in
+        the update() function */
+        glRotatef (10, 0.0, 1.0, 0.0);
+
+        glPointSize(5.0);
+        //draws floor 
+        glBegin(GL_POLYGON);
+       
+        glVertex3fv(floorVertices[0]);
+        
+        glVertex3fv(floorVertices[1]);
+       
+        glVertex3fv(floorVertices[2]);
+        
+        glVertex3fv(floorVertices[3]);
         glEnd();
 
-    }
-     
-    glPopMatrix ();
-    glFlush();
+
+        for(i=0;i<4;i++){
+            for(j=0;j<4;j++){
+                shadowMatrix[i][j]=0;
+            }
+        }
+
+        // 0 4 8 c
+        // 1 5 9 d
+        // 2 6 a e
+        // 3 7 b f
+        //create shadow matrix
+
+        //collunm row on z plane
+        // shadowMatrix[0][0] = light_position[2];
+        // shadowMatrix[0][2] = -light_position[2];
+        // shadowMatrix[1][1] = light_position[2];
+        // shadowMatrix[1][2] = -light_position[1];
+        // shadowMatrix[3][2] = -1; //local light source
+        // shadowMatrix[3][3] = light_position[2];
+        
+        //on x plane
+        shadowMatrix[0][0] = light_position[1];
+        shadowMatrix[1][0] = -1 * light_position[0];
+        shadowMatrix[1][2] = -1 * light_position[2];
+        shadowMatrix[2][2] = light_position[1];
+        shadowMatrix[1][3] = -1;
+        shadowMatrix[3][3] = light_position[1];
+
+
+       /*
+        shadmat[0] = light_position[2];
+        shadmat[2] = -light_position[2];
+        shadmat[5] = light_position[2];
+        shadmat[6] = -light_position[1];
+        shadmat[14] = -1;
+        shadmat[15] = light_position[2];
+        */
+
+        //draw line from light to center
+        glBegin(GL_LINES);
+        glVertex3f(light_position[0],light_position[1],light_position[2]);
+        glVertex3f(0,0,0);
+        glEnd();
+
+        glPushMatrix ();
+        glColor3f(0.3, 0.3, 0.3);
+        glPolygonMode(GL_FRONT, GL_FILL);
+      //  glScalef(1,1,0);
+       // gluPerspective(90, 1000000, 0.1,100.0);
+
+        glMultMatrixf((const float*)shadowMatrix);
+        for(i=0;i<numberOfFaces;i++){
+            
+            v1 = faceMap[i][0];
+            v2 = faceMap[i][1];
+            v3 = faceMap[i][2];
+            v4 = faceMap[i][3];
+        //   printf("i at %d, %d,%d,%d,%d",i,v1,v2,v3,v4);
+        //   printf(", xyz = %f, %f, %f\n",vertexMap[v1][0],vertexMap[v1][1],vertexMap[v1][2]);
+            if(v1 == 3){
+                glBegin(GL_TRIANGLES); 
+                glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
+                glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
+                glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+            }else{
+                glBegin(GL_QUADS); 
+                v5 = faceMap[i][4];
+                
+                glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
+                glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
+                glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+                glVertex3f(vertexMap[v5][0],vertexMap[v5][1],vertexMap[v5][2]);
+                /*
+                glVertex3f(vertexMap[v2][0]/vertexMap[v2][2],vertexMap[v2][1]/vertexMap[v2][2],1);
+                glVertex3f(vertexMap[v3][0]/vertexMap[v3][2],vertexMap[v3][1]/vertexMap[v3][2],1);
+                glVertex3f(vertexMap[v4][0]/vertexMap[v4][2],vertexMap[v4][1]/vertexMap[v4][2],1);
+                glVertex3f(vertexMap[v5][0]/vertexMap[v5][2],vertexMap[v5][1]/vertexMap[v5][2],1);
+                */
+            }
+            glEnd();
+        }
+        glColor3f(1.0, 1.0, 1.0);
+        glPopMatrix ();
+
+          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        for(i=0;i<numberOfFaces;i++){
+            v1 = faceMap[i][0];
+            v2 = faceMap[i][1];
+            v3 = faceMap[i][2];
+            v4 = faceMap[i][3];
+            if(v1 == 3){
+                glBegin(GL_TRIANGLES); 
+                glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
+                glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
+                glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+            }else{
+                glBegin(GL_QUADS); 
+                v5 = faceMap[i][4];
+                glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
+                glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
+                glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+                glVertex3f(vertexMap[v5][0],vertexMap[v5][1],vertexMap[v5][2]);
+            }
+
+            glEnd();
+        }
+
+        
+        glPopMatrix ();
+        glFlush();
     }
 
     //count numlines in file
@@ -129,7 +262,7 @@ void init (void) {
         glViewport (0, 0, (GLsizei) w, (GLsizei) h);
         glMatrixMode (GL_PROJECTION);
         glLoadIdentity ();
-        gluPerspective(45.0, (GLfloat)w/(GLfloat)h, 0.1, 100.0);
+        gluPerspective(45.0, (GLfloat)w/(GLfloat)h, 0.1, 200.0);
         glMatrixMode (GL_MODELVIEW);
         glLoadIdentity ();
     }
@@ -147,7 +280,14 @@ void init (void) {
     }
  
     void update() {
-       rotate += 0.1;
+       rotate += 0.01;
+       float theta = 2.0f * 3.1415926f * rotate / 50;//get the current angle
+        light_position[0] = 10 * cosf(theta);//calculate the x component
+        light_position[2] = 10 * sinf(theta);//calculate the y component
+        if(rotate==50){
+            rotate =0;
+        }
+
        display();
     }
 
@@ -227,7 +367,7 @@ void init (void) {
                 if(i<numberOfVertex){
                     sscanf( line, "%f %f %f",&x,&y,&z);
                     vertexMap[i][0] = x;
-                    vertexMap[i][1] = y;
+                    vertexMap[i][1] = y+4;
                     vertexMap[i][2] = z;
                   //  printf("at %d, xyz = %f, %f, %f\n",i,x,y,z);
                     i++;
