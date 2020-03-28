@@ -27,31 +27,56 @@ float rotate;
 int numberOfVertex,numberOfFaces;
 GLfloat light_position[4];
 
-/*  Initialize material property and light source.  */
-void init (void) {
-   light_position[0] =  0.0;
-   light_position[1] =  10.0;
-   light_position[2] =  15.0;
-   light_position[3] =  0.0;
- 
-}
+   
+
+    /*  Initialize material property and light source.  */
+    void init (void) {
+        GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+        GLfloat light_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
+        GLfloat light_specular[] = { 0.7, 0.7, 0.7, 1.0 };
+        GLfloat light_ambient1[] = { 0.2, 0.2, 0.2, 1.0 };
+        GLfloat light_diffuse1[] = { 0.4, 0.4, 0.4, 1.0 };
+        GLfloat light_specular1[] = { 0.9, 0.9, 0.9, 1.0 };
+        GLfloat light_full_off[] = {0.0, 0.0, 0.0, 1.0};
+        GLfloat light_full_on[] = {1.0, 1.0, 1.0, 1.0};
+
+        light_position[0] =  0.0;
+        light_position[1] =  10.0;
+        light_position[2] =  15.0;
+        light_position[3] =  1.0;
+        glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
+        glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+        glLightfv (GL_LIGHT0, GL_SPECULAR, light_full_on);
+
+        glLightfv (GL_LIGHT1, GL_AMBIENT, light_ambient1);
+        glLightfv (GL_LIGHT1, GL_DIFFUSE, light_diffuse1);
+        glLightfv (GL_LIGHT1, GL_SPECULAR, light_full_on);
+    
+        glLightfv (GL_LIGHT0, GL_POSITION, light_position);
+        
+        glEnable (GL_LIGHTING);
+        glEnable (GL_LIGHT0);
+        glEnable(GL_DEPTH_TEST);
+
+        //glEnable(GL_COLOR_MATERIAL);
+    }
 
 
 
 	/* calculate the length of a vector */
     float length(float *x, float *y, float *z) {
-    return( sqrtf( (*x * *x) + (*y * *y) + (*z * *z)) );
+        return( sqrtf( (*x * *x) + (*y * *y) + (*z * *z)) );
     }
 
 	/* creates a unit vector */
 	/* divide a vector by its own length */
     void normalize(float *xd, float *yd, float *zd) {
-    float len;
-    len = length(xd, yd, zd);
-    
-    *xd = *xd / len;
-    *yd = *yd / len;
-    *zd = *zd / len;
+        float len;
+        len = length(xd, yd, zd);
+        
+        *xd = *xd / len;
+        *yd = *yd / len;
+        *zd = *zd / len;
     }
 
     
@@ -64,30 +89,13 @@ void init (void) {
         GLfloat groundplane[4];
         GLfloat green[] = {0.0, 1.0, 0.0, 1.0};
         GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+        GLfloat white[] = {1.0, 1.0, 1.0, 1.0};
+        GLfloat gray[] = {0.8, 0.8, 0.8, 1.0};
+        GLfloat darkgray[] = {0.3, 0.3, 0.3, 1.0};
         
-        //draw light as sphere 
-        glMatrixMode(GL_MODELVIEW);
+        float normal[3] = {0,0,0};
         
-        glPushMatrix();
-        glClear(GL_COLOR_BUFFER_BIT);
-        // clear the identity matrix.
-        glLoadIdentity();
-    
-        glTranslatef(light_position[0],light_position[1],light_position[2]);
-        glutSolidSphere (1, 20, 20);
-    
-        glPopMatrix();
-
-        // z plane
-        // GLfloat floorVertices[4][3] = {
-        //     { -20.0, 20.0, 00.0 },
-        //     { 20.0, 20.0, 0.0 },
-        //     { 20.0, -20.0, 0.0 },
-        //     { -20.0, -20.0, 0.0 },
-        //     };
-
         //x plane
-
         GLfloat floorVertices[4][3] = {
             { -20.0, 0.0, 20.0 },
             { 20.0, 0.0, 20.0 },
@@ -96,32 +104,40 @@ void init (void) {
             };
 
 
-        
         glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLightfv (GL_LIGHT0, GL_POSITION, light_position);    
+
+        glMatrixMode (GL_MODELVIEW);
+        
+        glShadeModel(GL_SMOOTH);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, darkgray);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, gray);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, white);
+        glMaterialf(GL_FRONT, GL_SHININESS, 128);
+
+        
+
         /* set starting location of objects */
         glPushMatrix ();
         glTranslatef(0.0,0.0, -40.0);
         glRotatef(40,1,0,0); // rotate so looking down on cube
-
+        
+        glutSolidSphere (0.3, 10, 10);
         /* rotate around the y axis, angle or rotation (rot) modified in
         the update() function */
         glRotatef (10, 0.0, 1.0, 0.0);
 
         glPointSize(5.0);
         //draws floor 
+        glDisable(GL_LIGHTING);
         glBegin(GL_POLYGON);
-       
         glVertex3fv(floorVertices[0]);
-        
         glVertex3fv(floorVertices[1]);
-       
         glVertex3fv(floorVertices[2]);
-        
         glVertex3fv(floorVertices[3]);
         glEnd();
-
+        glEnable (GL_LIGHTING);
 
         for(i=0;i<4;i++){
             for(j=0;j<4;j++){
@@ -134,16 +150,8 @@ void init (void) {
         // 2 6 a e
         // 3 7 b f
         //create shadow matrix
-
-        //collunm row on z plane
-        // shadowMatrix[0][0] = light_position[2];
-        // shadowMatrix[0][2] = -light_position[2];
-        // shadowMatrix[1][1] = light_position[2];
-        // shadowMatrix[1][2] = -light_position[1];
-        // shadowMatrix[3][2] = -1; //local light source
-        // shadowMatrix[3][3] = light_position[2];
-        
         //on x plane
+
         shadowMatrix[0][0] = light_position[1];
         shadowMatrix[1][0] = -1 * light_position[0];
         shadowMatrix[1][2] = -1 * light_position[2];
@@ -151,42 +159,30 @@ void init (void) {
         shadowMatrix[1][3] = -1;
         shadowMatrix[3][3] = light_position[1];
 
-
-       /*
-        shadmat[0] = light_position[2];
-        shadmat[2] = -light_position[2];
-        shadmat[5] = light_position[2];
-        shadmat[6] = -light_position[1];
-        shadmat[14] = -1;
-        shadmat[15] = light_position[2];
-        */
-
+        glDisable(GL_LIGHTING);
         //draw line from light to center
         glBegin(GL_LINES);
         glVertex3f(light_position[0],light_position[1],light_position[2]);
         glVertex3f(0,0,0);
         glEnd();
 
-        glPushMatrix ();
-        glColor3f(0.3, 0.3, 0.3);
         glPolygonMode(GL_FRONT, GL_FILL);
-      //  glScalef(1,1,0);
-       // gluPerspective(90, 1000000, 0.1,100.0);
-
+     
+       // begin drawing shadow
+        glPushMatrix ();
+         glColor3f(0.3, 0.3, 0.3);
         glMultMatrixf((const float*)shadowMatrix);
-        for(i=0;i<numberOfFaces;i++){
-            
+        for(i=0;i<numberOfFaces;i++){ 
             v1 = faceMap[i][0];
             v2 = faceMap[i][1];
             v3 = faceMap[i][2];
             v4 = faceMap[i][3];
-        //   printf("i at %d, %d,%d,%d,%d",i,v1,v2,v3,v4);
-        //   printf(", xyz = %f, %f, %f\n",vertexMap[v1][0],vertexMap[v1][1],vertexMap[v1][2]);
-            if(v1 == 3){
+           if(v1 == 3){
                 glBegin(GL_TRIANGLES); 
                 glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
                 glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
                 glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+                glEnd();
             }else{
                 glBegin(GL_QUADS); 
                 v5 = faceMap[i][4];
@@ -195,19 +191,14 @@ void init (void) {
                 glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
                 glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
                 glVertex3f(vertexMap[v5][0],vertexMap[v5][1],vertexMap[v5][2]);
-                /*
-                glVertex3f(vertexMap[v2][0]/vertexMap[v2][2],vertexMap[v2][1]/vertexMap[v2][2],1);
-                glVertex3f(vertexMap[v3][0]/vertexMap[v3][2],vertexMap[v3][1]/vertexMap[v3][2],1);
-                glVertex3f(vertexMap[v4][0]/vertexMap[v4][2],vertexMap[v4][1]/vertexMap[v4][2],1);
-                glVertex3f(vertexMap[v5][0]/vertexMap[v5][2],vertexMap[v5][1]/vertexMap[v5][2],1);
-                */
+                glEnd();
             }
-            glEnd();
+          
         }
-        glColor3f(1.0, 1.0, 1.0);
+       
         glPopMatrix ();
-
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glEnable (GL_LIGHTING);
+       
         for(i=0;i<numberOfFaces;i++){
             v1 = faceMap[i][0];
             v2 = faceMap[i][1];
@@ -218,16 +209,29 @@ void init (void) {
                 glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
                 glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
                 glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
+                glEnd();
             }else{
-                glBegin(GL_QUADS); 
                 v5 = faceMap[i][4];
+                int index[] = {v2,v3,v4,v5};
+                int cur,next;
+                for(j =0; j<4;j++){
+                    cur = j;
+                    next = (j+1)%4;
+                    normal[0] = (normal[0])+ (vertexMap[index[cur]][1]-vertexMap[index[next]][1]) * (vertexMap[index[cur]][2]+ vertexMap[index[next]][1]);
+                    normal[1] = (normal[1]) + (vertexMap[index[cur]][2]-vertexMap[index[next]][2]) * (vertexMap[index[cur]][0]+ vertexMap[index[next]][0]);
+                    normal[2] = (normal[2]) + (vertexMap[index[cur]][0]-vertexMap[index[next]][0]) * (vertexMap[index[cur]][1]+ vertexMap[index[next]][1]);
+                }
+
+                normalize(&normal[0],&normal[1],&normal[2]);
+                //printf("face %d normalize vector X %f, y %f, z %f\n",i,normal[0],normal[1],normal[2]);
+                glBegin(GL_QUADS); 
+                glNormal3f(normal[0],normal[1],normal[2]);
                 glVertex3f(vertexMap[v2][0],vertexMap[v2][1],vertexMap[v2][2]);
                 glVertex3f(vertexMap[v3][0],vertexMap[v3][1],vertexMap[v3][2]);
                 glVertex3f(vertexMap[v4][0],vertexMap[v4][1],vertexMap[v4][2]);
                 glVertex3f(vertexMap[v5][0],vertexMap[v5][1],vertexMap[v5][2]);
-            }
-
-            glEnd();
+                glEnd();
+            } 
         }
 
         
@@ -281,6 +285,7 @@ void init (void) {
  
     void update() {
        rotate += 0.01;
+       //rotate light in a 50 segment circle
        float theta = 2.0f * 3.1415926f * rotate / 50;//get the current angle
         light_position[0] = 10 * cosf(theta);//calculate the x component
         light_position[2] = 10 * sinf(theta);//calculate the y component
@@ -394,16 +399,17 @@ void init (void) {
 
 
    
-    init();
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize (1024, 768);
     glutCreateWindow("3D Ply Shadow");
-    glutKeyboardFunc (keyboard);
-    glutDisplayFunc(display);
+    init();
     glutReshapeFunc (reshape);
+    glutDisplayFunc(display);
+    glutKeyboardFunc (keyboard);
     glutIdleFunc(update);
     glutMainLoop();
 
+    fclose(fp);
     return 0;
     }
