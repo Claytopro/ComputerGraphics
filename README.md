@@ -5,6 +5,6 @@ A1: create a tree by drawing spheres recursively included are files formatted co
 
 A2: Create a Sphere that rotates and allows user to move between different drawing effects including types of shading, use numbers 1-7 to alter sphere
 
-A3:
+A3: Using ray tracing and input paramters draw sphere.
 
 A4: create illusion of shadows drawing on the virtual "ground" at x = 0
